@@ -1,0 +1,64 @@
+••••••••••••••••••••••••••••••••••••••••••••••••••••
+
+We need the most currect survey and all the candidates as well as the faculty user info os they can conduct surveys or be locked out of them. 
+
+  What is confusing me here is one of many things. 
+
+    Surveys
+    ___
+
+    • Do evals. choose students from the list or are they assigned by an admin?
+    • How many surveys are associated with a candidate.?
+    • Can an eval. chage years?
+
+    Scheduling
+    ___
+    
+    • How many interviews can a candidate have.
+
+    Ranking
+    ___
+    
+    • What fundamental system do you want here? We need to clearly deine the rules. I would like a system that is fair and very well defined. I would also like to keep the data for furthur analysis for improvements upon the ranking system. 
+
+    All these questions need ot be addressed before the db schema can be solidified or we will have extreme interface 
+    code maintenance problems. 
+
+    What should the schema be?
+      • We will definately need modifications ot the candidate model. 
+
+      candidate model could take an array called:
+        surveys: [
+          {
+            "uuid" : "",
+            "date" : "",
+            "evaluator" : "UUID"
+            "questions" : [],
+            "total"
+          }
+        ]
+
+        API METHODS
+          CANDIDATE: addSurvey(candidate, survey)
+
+
+
+HOW THE CRAP ARE WE GOING TO DO THE SCHEDULING? 
+
+GET ALL THE EVALUATORS
+
+SHOULD ADMIN BE THE ONE TO SET INTERVIEW DAYS? IT WOULD BE MUCH EASIER IF THEY DID?
+
+HOW IS THIS GOING TO EFFECT THE SCHEMA? DO WE NEED A DATES TABLE? WHAT WOULD MAKE MOST SENSE IN THE CURRENT DB?
+
+I THINK AN INTERVIEWS TABLE WOULD BE THE WAY TO GO 
+
+interviews: [
+          {
+            "uuid" : "",
+            "date" : "",
+            "organization" : {}
+            "evaluator" : {}
+          }
+        ]
+••••••••••••••••••••••••••••••••••••••••••••••••••••

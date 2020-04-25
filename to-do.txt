@@ -1,0 +1,3 @@
+Read Write Capacity DynamoDB
+
+Javascript Client Changes Deployment

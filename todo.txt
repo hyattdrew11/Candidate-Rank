@@ -1,0 +1,62 @@
+Below is a list of things we noticed yesterday on the website that need to be corrected:
+
+ 
+
+Color scheme does not match the Candidate Rank logo.
+- If you hit the “Back” button in the welcome wizard, it removes your data. *
+
+- When you select first interview date, it inputs two dates in the interview date slot. *
+
+- There needs to be a better way to tie the interview dates with the evaluator. This makes it very confusing for the user. *
+
+- When you hit “Save Progress”, it doesn’t actually save your progress. Also, it should say “This name already exists” when you try to save a file with the same name.
+
+- After each step under setup, there should be a message that says “Would you like to move to the next step?” once the field is populated.
+
+- CSV file upload works but it doesn’t say “Import Complete” and the list that was imported doesn’t move to the other screens (i.e. pre-interview, schedule, etc.). There are no candidates listed anywhere 	else.  *
+
+- There is not an area to upload PDFs.
+
+When you select True or False for pre-interview doesn’t stay with evaluator. *
+
+There should be a “Save Progress” button on every page.
+Survey doesn’t say “Survey Complete” once you go through all the steps.
+Once you complete the survey, there is not a “Done” button.
+
+
+April 11 - 18
+• Deploy current wire frame to AWS
+• Setup testing accounts for team
+• Complete "User" / "Evaluator Administration"
+• Update colors and theme of application
+• Deploy changes
+
+April 19 - 25
+• Focus on administrator dashboard completion
+• Department Logo
+• ERAS PDF's Upload
+• Evaluator management
+• Survey Management
+• Deploy Changes
+
+April 26 - May 2
+• Move focus to faculty dashboard
+• Solidify candidate gird and important fields
+• Add candidate pictures to database and grid
+• View candidate PDF's features
+• Deploy Changes
+
+May 3 - May 9
+• Complete candidate email and notification templates
+• Explore zoom integration - associate interview times with zoom meeting
+• Candidate survey aggregation and totals
+• Deploy Changes
+
+May 10 - May 16
+• Focus on interactive candidate schedule grid
+• Deploy Changes
+
+May 17 - May 23
+• Integrate real time search engine - Elastic-search
+• Bug fixing and new feature request implementation
+• Alpha Testing Deployment

@@ -3,8 +3,10 @@ import boto3
 import json
 import decimal
 import uuid
+from flask import Flask, Blueprint, jsonify, request, current_app, json
 from datetime   import datetime
 from boto3.dynamodb.conditions import Key, Attr
+from elasticsearch import Elasticsearch
 
 DB_URL='https://dynamodb.us-east-1.amazonaws.com'
 ORGANIZATIONS_TABLE             = 'organizations'
@@ -34,8 +36,11 @@ class CandidateController:
         self.table = dynamodb.Table('candidates')
 
     def createNewCandidates(self, candidates):
+        print("CREATE NEW CANDIDATES")
+        es = Elasticsearch([{'host': current_app.config['ES_CLUSTER'], 'port': current_app.config['ES_PORT']}])
         try:
             for x in candidates:
+                print(x)
                 cid = uuid.uuid4()
                 cid = str(cid)
                 now = str(datetime.now())
@@ -43,8 +48,25 @@ class CandidateController:
                 x["date_created"]   = now
                 x["date_modified"]  = now
                 self.table.put_item(Item=x)
+                es.index(index='candidates', doc_type='_doc', id=cid, body=x)
             return True
         except Exception as e:
+            print(e)
+            return False
+
+    def updateCandidates(self, candidates):
+        print("Updating Candidates")
+        es = Elasticsearch([{'host': current_app.config['ES_CLUSTER'], 'port': current_app.config['ES_PORT']}])
+        try:
+            for x in candidates:
+                now = str(datetime.now())
+                x['date_modified'] = now
+                self.table.put_item(Item=x)
+                ui = es.update(index='candidates', id=x['uuid'], body={"doc": x })
+            return True
+            
+        except Exception as e:
+            print(e)
             return False
 
     def checkIfTableIsActive(self):
@@ -56,7 +78,7 @@ class CandidateController:
 
     def getCandidates(self, organization, year):
         candidates = []
-        fe = Key('Organization').eq(organization) &  Key('Rank-Term').eq(year)
+        fe = Key('Organization').eq(organization) & Key('Rank-Term').eq(year)
         try:
             response = self.table.scan(FilterExpression=fe)
         except ItemNotFound as inf:
@@ -78,17 +100,26 @@ class CandidateController:
 
         return candidates
 
-    def getCandidate(self, email, password):
-        """
-        Basic get_item call on the users Table, where we specify the primary key
-        email to be the parameter email.
-        Returns None on an ItemNotFound Exception.
-        """
+    def getCandidate(self, organization, year, aamcid):
+        candidates = []
+        fe = Key('Organization').eq(organization) & Key('Rank-Term').eq(year) & Key('AAMC ID').eq(aamcid) 
         try:
-            item = self.cm.getCandidatesTable().get_item(email=email)
+            response = self.table.scan(FilterExpression=fe)
         except ItemNotFound as inf:
             return None
         except JSONResponseError as jre:
             return None
 
-        return item
+        for i in response['Items']:
+            candidates.append(i)
+
+        while 'LastEvaluatedKey' in response:
+            response = self.table.scan(
+                FilterExpression=fe,
+                ExclusiveStartKey=response['LastEvaluatedKey']
+                )
+            for i in response['Items']:
+                candidates.append(i)
+
+
+        return candidates

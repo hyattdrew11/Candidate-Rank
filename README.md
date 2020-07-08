@@ -59,3 +59,7 @@ https://realpython.com/handling-email-confirmation-in-flask/#register-view-funct
 		* ORGANIZATIONS
 	- SQS WRITE / UPDATE / DELETE - TIE TO DYNAMODB CLASSES - LAMBDA OR SERVER CRON ?
 https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xvi-full-text-search
+
+
+
+ssh -L 9200:172.31.0.10:9200 candidate-worker -N 

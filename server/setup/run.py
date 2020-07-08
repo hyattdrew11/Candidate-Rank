@@ -70,6 +70,74 @@ def createUsersTable():
 
     return
 
+def createTasksTable():
+    client.create_table(
+                    AttributeDefinitions=[
+                    {
+                        'AttributeName': 'uuid',
+                        'AttributeType': 'S',
+
+                    },
+                    {
+                        'AttributeName': 'Organization',
+                        'AttributeType': 'S'
+                    }
+                    ],
+                    TableName="tasks",
+                    KeySchema=[
+                        {
+                        'AttributeName':'uuid',
+                        'KeyType': 'HASH'
+                        },
+                        {
+                        'AttributeName': 'Organization',
+                        'KeyType': 'RANGE'
+                        }
+                    ],
+                    BillingMode='PROVISIONED',
+                    ProvisionedThroughput={
+                        'ReadCapacityUnits': 1,
+                        'WriteCapacityUnits': 1
+                    }
+                )
+    print("TASK TABLE CREATED")
+
+    return
+
+def createFilesTable():
+    client.create_table(
+                    AttributeDefinitions=[
+                    {
+                        'AttributeName': 'uuid',
+                        'AttributeType': 'S',
+
+                    },
+                    {
+                        'AttributeName': 'Organization',
+                        'AttributeType': 'S'
+                    }
+                    ],
+                    TableName="files",
+                    KeySchema=[
+                        {
+                        'AttributeName':'uuid',
+                        'KeyType': 'HASH'
+                        },
+                        {
+                        'AttributeName': 'Organization',
+                        'KeyType': 'RANGE'
+                        }
+                    ],
+                    BillingMode='PROVISIONED',
+                    ProvisionedThroughput={
+                        'ReadCapacityUnits': 1,
+                        'WriteCapacityUnits': 1
+                    }
+                )
+    print("FILES TABLE CREATED")
+
+    return
+
 def createSurveyTable():
     # cm.createUsersTable()
     # while UserController.checkIfTableIsActive() == False:
@@ -213,7 +281,9 @@ def createOrganizationsTable():
     return
 
 diagnostics()
-createUsersTable()
+# createUsersTable()
 createCandidateTable()
-createOrganizationsTable()
-createSurveyTable()
+# createOrganizationsTable()
+# createSurveyTable()
+# createTasksTable()
+# createFilesTable()

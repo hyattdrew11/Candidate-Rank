@@ -55,44 +55,51 @@ class UserController:
                             })
 
             print("ADMIN CREATED")
+            print(item)
             return item
-            print(json.dumps(response, indent=4, cls=DecimalEncoder))
+            # print(json.dumps(response, indent=4, cls=DecimalEncoder))
         except Exception as error:
             print(error)
             return error
 
-    def createNewUser(self, password, email, role, status):
-        print("CREATE NEW USER")
-        print(password, email, role, status, first_name, last_name)
-        now = str(datetime.now())
-        item =  self.table_users.put_item(
-                        Item={
-                            "date_created"  : now,
-                            "date_modified" : now,
-                            "password"      : password,
-                            "email"         : email,
-                            "role"          : role,
-                            "status"        : status,
-                            "first_name"    : "  ",
-                            "last_name"     : "  ",
-                        })
-
-        print("PutItem succeeded:")
-        return item
-        print(json.dumps(response, indent=4, cls=DecimalEncoder))
+    def createNewUser(self, password, email, organization):
+        try:
+            print("CREATE NEW USER")
+            userCheck = self.getUser(email, password)
+            if userCheck:
+                return False
+            else: 
+                now = str(datetime.now())
+                item =  self.table_users.put_item(
+                            Item={
+                                "date_created"  : now,
+                                "date_modified" : now,
+                                "password"      : password,
+                                "email"         : email,
+                                "role"          : "faculty",
+                                "status"        : "inactive",
+                                "Organization"  : organization,
+                                "first_name"    : "  ",
+                                "last_name"     : "  ",
+                            })
+                print(item)
+                return item
+                
+        except Exception as error:
+            print(error)
+            return False
 
     def getUser(self, email, password):
         print("GET USER CONTROLLER")
         user = {}
+        fe = Key('email').eq(email)
         try:
-            response = self.table_users.query(KeyConditionExpression=Key('email').eq(email))
+            response = self.table_users.scan(FilterExpression=fe)
         except Exception as e:
             print(e)
         else:
             for i in response['Items']:
-                print(i)
                 user = i
-        print(user)
         return user
 
     def getFaculty(self, organization):

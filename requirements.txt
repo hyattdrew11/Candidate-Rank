@@ -49,3 +49,5 @@ tqdm==4.43.0
 urllib3==1.25.8
 webassets==0.12.1
 Werkzeug==1.0.0
+# Elasticsearch 7.x
+elasticsearch>=7.0.0,<8.0.0

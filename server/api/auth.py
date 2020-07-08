@@ -1,9 +1,12 @@
 #! AUTHENTICATION API 
+import random
+import string
 import uuid
 from functools import wraps
 from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, Blueprint, jsonify, request, current_app, json
+from flask_mail import Mail
 from server.controllers.userController import UserController
 from server.models.user import User
 from flask_jwt_extended import (
@@ -11,6 +14,7 @@ from flask_jwt_extended import (
     jwt_refresh_token_required, create_refresh_token,
     get_jwt_identity
 )
+
 controller = UserController()
 mod = Blueprint('auth', __name__)
 
@@ -32,6 +36,7 @@ def register():
 
 @mod.route('/login/', methods=('POST',))
 def login():
+    error       = None
     data        = request.get_json()
     email       = data['email']
     password    = data['password']
@@ -43,12 +48,39 @@ def login():
     }
     if not user:
         return "Record not found", 500
-    return jsonify({ 'token': token })
+    elif not check_password_hash(user['password'], password):
+        error = 'Incorrect password.'
+    if error is None:
+        return jsonify({ 'token': token })
+    else:
+        return "Record not found", 500
 
 
-@mod.route('/user/add/<email>', methods=('POST',))
-def addUser():
-    return jsonify({ 'user': 'data' })
+@mod.route('/user/add/<email>/<organization>', methods=('POST','GET'))
+def addUser(email, organization):
+    error = None
+    tmpPass  = uuid.uuid4()
+    print(tmpPass)
+    password = generate_password_hash(str(tmpPass), method='sha256')
+    user = controller.createNewUser(password, email, organization)
+    sender = current_app.config['MAIL_USERNAME']
+    if not user:
+        return "Record not found", 500
+
+    if error is None:
+        mail = Mail(current_app)
+        msg = mail.send_message(
+            'Candidate Rank',
+            sender=sender,
+            recipients=['drew@thearchengine.com'],
+            body="You have been invited to Candidate Rank by " + organization + ". Please go to www.candidaterank.io/login to set your password and login."
+        )
+        return jsonify({ 'user': email })
+
+    else:
+        return "Record not found", 500
+    # 
+
     # data           = request.get_json()
     # password       = generate_password_hash(data['password'], method='sha256')
     # email          = data['email']

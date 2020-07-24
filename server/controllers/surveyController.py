@@ -31,6 +31,7 @@ class SurveyController:
         self.table = dynamodb.Table(SURVEYS_TABLE)
 
     def createSurvey(self, survey):
+        print(survey)
         now = str(datetime.now())
         sid = uuid.uuid4()
         sid = str(sid)

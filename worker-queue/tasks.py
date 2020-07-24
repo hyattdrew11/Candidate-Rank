@@ -218,13 +218,29 @@ def getPhoto(job_id, s3key, organization, year):
                 response = recog.detect_faces(Image={'Bytes': image.read()})
                 if len(response['FaceDetails']) > 0:
                     with Image(filename=path) as i:
+                        print("==============================================================================")
+                        print(i.width, i.height)
+                        print("==============================================================================")
                         # CROP JPEG SO ONLY FACE IS SAVED AS PROFILE PICTURE
                         left = round(response['FaceDetails'][0]['BoundingBox']['Left'] * i.width)
                         top  = round(response['FaceDetails'][0]['BoundingBox']['Top'] * i.height)
                         right = round(left + (i.width * response['FaceDetails'][0]['BoundingBox']['Width']))
                         bottom = round(top +  (i.height * response['FaceDetails'][0]['BoundingBox']['Height']))
-                        print(left , top, right, bottom)
+
+
+                        print("==============================================================================")
+                        print(top, bottom, right, left)
+                        print("==============================================================================")
+
+                        left   -= round(left * .25)
+                        top    -= round(top * .25)
+                        right  += round(right * .25)
+                        bottom += round(bottom * .25)
+                        print("==============================================================================")
+                        print(top, bottom, right, left)
+                        print("==============================================================================")
                         i.crop(left , top, right, bottom)
+                        i.format = 'png'
                         i.save(filename=path)
 
                     dest =  tmpPath + '/profile-photo.jpg'

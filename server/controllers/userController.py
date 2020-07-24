@@ -4,6 +4,7 @@ import json
 import decimal
 from datetime   import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+# from flask import Flask, jsonify, json
 # from server import config
 
 
@@ -32,65 +33,89 @@ class UserController:
         self.table_users = dynamodb.Table(USERS_TABLE)
         self.table_organizations = dynamodb.Table(ORGANIZATIONS_TABLE)
 
-    def createAdmin(self, password, email, organization, cc, ccexp, cvv):
+    def getOrganization(self, organization):
+        org = {}
         try:
-            print("CREATE NEW ADMIN")
-            print( password, email, organization, cc, ccexp, cvv)
-            org =  self.table_organizations.put_item(Item={"name" : organization, "admin" : email, "terms":[] })
-            now = str(datetime.now())
-            item =  self.table_users.put_item(
-                            Item={
-                                "date_created"  : now,
-                                "date_modified" : now,
-                                "password"      : password,
-                                "email"         : email,
-                                "role"          : "Admin",
-                                "status"        : "Active",
-                                "Organization"  : organization,
-                                "first_name"    : "  ",
-                                "last_name"     : "  ",
-                                "cc"            : cc,
-                                "ccexp"         : ccexp,
-                                "cvv"           : cvv 
-                            })
+            response = self.table_organizations.query(KeyConditionExpression=Key('name').eq(organization))
+        except Exception as e:
+            print(e)
+        else:
+            for i in response['Items']:
+                org = i
+        return org
 
-            print("ADMIN CREATED")
-            print(item)
-            return item
-            # print(json.dumps(response, indent=4, cls=DecimalEncoder))
+    def createOrg(self, email, organization):
+        try:
+            check = self.getOrganization(organization)
+            if check:
+                return False
+            else:
+                print("CREATE NEW ORG")
+                now = str(datetime.now())
+                org =  self.table_organizations.put_item(Item={
+                    "name" : organization, 
+                    "admin" : email, 
+                    "terms":[] , 
+                    "active": "true",
+                    "date_created"  : now,
+                    "date_modified" : now,
+                })
+                res = {
+                    "name" : organization, 
+                    "admin" : email, 
+                    "terms":[] , 
+                    "active": "true" ,
+                    "date_created"  : now,
+                    "date_modified" : now,
+                }
+                print("ADMIN CREATED")
+                return res
         except Exception as error:
             print(error)
             return error
 
-    def createNewUser(self, password, email, organization):
+    def createNewUser(self, email, password, organization):
         try:
             print("CREATE NEW USER")
-            userCheck = self.getUser(email, password)
-            if userCheck:
-                return False
-            else: 
-                now = str(datetime.now())
-                item =  self.table_users.put_item(
-                            Item={
-                                "date_created"  : now,
-                                "date_modified" : now,
-                                "password"      : password,
-                                "email"         : email,
-                                "role"          : "faculty",
-                                "status"        : "inactive",
-                                "Organization"  : organization,
-                                "first_name"    : "  ",
-                                "last_name"     : "  ",
-                            })
-                print(item)
-                return item
+            print(organization)
+            now = str(datetime.now())
+            item =  self.table_users.put_item(
+                        Item={
+                            "date_created"  : now,
+                            "date_modified" : now,
+                            "email"         : email,
+                            "password"      : password,
+                            "role"          : "faculty",
+                            "status"        : "Active",
+                            "Organization"  : organization['name'],
+                            "first_name"    : "  ",
+                            "last_name"     : "  ",
+                        })
+            return item
                 
         except Exception as error:
             print(error)
             return False
 
+    def updateUser(self, user):
+        try:
+            print("REFRESH USER")
+            now = str(datetime.now())
+            user["date_modified"] = now
+            item  = self.table_users.put_item(Item=user)
+            if item:
+                print("USER REFRESHED")
+                return item
+            else: 
+                return False
+        except Exception as e:
+            print("ERROR UPDATING USER")
+            print(e)
+            return False
+
+
     def getUser(self, email, password):
-        print("GET USER CONTROLLER")
+        print("GET USER CONTROLLER: " + email)
         user = {}
         fe = Key('email').eq(email)
         try:

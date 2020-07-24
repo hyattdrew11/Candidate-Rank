@@ -232,19 +232,22 @@ class CSVController:
 				with open(file, "r") as f:
 					reader = csv.reader(f)
 					for l, line in enumerate(reader):
-						json = {}
-						for i, f in enumerate(line):
-							key = header[i]
-							value = f
-							check = self.checkFields(key, value)
-							json.update(check)
+						if l == 0:
+							print("CSV HEADER")
+						else:
+							json = {}
+							for i, f in enumerate(line):
+								key = header[i]
+								value = f
+								check = self.checkFields(key, value)
+								json.update(check)
 
-							if len(value) > 0:
-								json[key] = value
-							else:
-								json[key] = 'n/a'
+								if len(value) > 0:
+									json[key] = value
+								else:
+									json[key] = 'n/a'
 
-						candidates.append(json)
+							candidates.append(json)
 						
 				print(len(candidates))
 				self.importCandidates(candidates, organization, year)

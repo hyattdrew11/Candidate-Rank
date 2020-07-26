@@ -24,12 +24,12 @@ UPLOAD_DIR						=  os.path.join(here, "uploads")
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 465
 MAIL_USE_SSL = True
-MAIL_USERNAME = 'hyattdrew11@gmail.com'
-MAIL_PASSWORD = 'Baggins1121Gandalf12@!'
+MAIL_USERNAME = ''
+MAIL_PASSWORD = ''
 
 
 REDIS_URL = 'redis://34.236.216.176:6379'
 # REDIS_URL = 'redis://localhost:6379'
 
-ZOOM_API_KEY = 'Ky2xoXeKT9urd7tGXANQ8w'
-ZOOM_API_SECRET = 'xsNL8E4Va6EQxcsFnrfQY6sKFKJfNXmJKUwt'
+ZOOM_API_KEY = ''
+ZOOM_API_SECRET = ''

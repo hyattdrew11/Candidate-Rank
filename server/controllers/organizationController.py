@@ -39,7 +39,7 @@ class OrganizationController:
         org["date_modified"] = now
         item =  client.update_item(
                     TableName=ORGANIZATIONS_TABLE,
-                    Key={'name': org.name },
+                    Key={'name': org['name'] },
                     AttributeUpdates=s,
                 )
         if item:
@@ -50,13 +50,33 @@ class OrganizationController:
 
     def updateTerms(self, organization):
         try:
+            print("UpDATE ORG TERMS")
             now = str(datetime.now())
             organization['date_modified'] = now
             self.table.put_item(Item=organization)
             return organization
             
         except Exception as e:
+            print(e)
             return False
+
+    def getAll(self):
+        orgs = []
+        try:
+            response = self.table.scan()
+        except Exception as e:
+            print(e)
+        else:
+            data = response['Items']
+            while 'LastEvaluatedKey' in response:
+                response =  self.table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+                data.extend(response['Items'])
+
+            for i in data:
+                print(i['name'])
+                orgs.append(i)
+                
+        return orgs
 
     def getOrganization(self, organization):
         org = {}

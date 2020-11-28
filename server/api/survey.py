@@ -36,10 +36,19 @@ def addSurvey():
 
 @mod.route('/update', methods=('POST',))
 def updateSurvey():
+	print("UpDATE SURVEY")
 	survey 	= request.get_json()
 	item	= SurveyController.updateSurvey(survey)
 	if item:
-		print(item)
+		return jsonify(item), 201
+	else:
+		return "Record not found", 500
+
+@mod.route('/delete', methods=('POST',))
+def deleteSurvey():
+	survey 	= request.get_json()
+	item	= SurveyController.deleteSurvey(survey)
+	if item:
 		return jsonify(item), 201
 	else:
 		return "Record not found", 500

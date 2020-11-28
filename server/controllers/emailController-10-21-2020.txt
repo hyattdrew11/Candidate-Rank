@@ -1,0 +1,319 @@
+#!
+# cqbxopzpnbjdznba
+import os
+import boto3
+import uuid
+import datetime
+from flask import current_app
+from botocore.exceptions import ClientError
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+import re
+import s3fs
+from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+from flask import Flask, Blueprint, jsonify, request, json, send_from_directory, jsonify, make_response, render_template
+from flask import current_app as app
+
+# GLOBAL VARIABLES
+fs 						= s3fs.S3FileSystem(anon=False)
+basedir 				= os.path.abspath(os.path.dirname(__file__))
+SENDER = 'info@candidaterank.io' 
+client = boto3.client('ses', region_name='us-east-1')
+CONFIGURATION_SET = "ConfigSet"
+CHARSET = "utf-8"
+
+class EmailController:
+
+	def __init__(self):
+		print("EMAIL CONTROLLER")
+		print(client)
+        # self.table_users = dynamodb.Table(USERS_TABLE)
+        # self.table_organizations = dynamodb.Table(ORGANIZATIONS_TABLE)
+	def sendTest(self, attachments, address, header, body, subject):
+		try:
+			tmpFiles = []
+			# Create a multipart/mixed parent container.
+			msg = MIMEMultipart('mixed')
+			msg['Subject'] = subject 
+			msg['From'] = SENDER
+			msg['To'] = address
+			# Create a multipart/alternative child container.
+			msg_body = MIMEMultipart('alternative')
+			# Encode the text and HTML content and set the character encoding. This step is
+			# necessary if you're sending a message with characters outside the ASCII range.
+			content  = header+body
+			print(content)
+			plainTxt = re.sub('<[^<]+?>', '', content)
+			textpart = MIMEText(plainTxt.encode(CHARSET), 'plain', CHARSET)
+			htmlpart = MIMEText(content.encode(CHARSET), 'html', CHARSET)
+			# Add the text and HTML parts to the child container.
+			msg_body.attach(textpart)
+			msg_body.attach(htmlpart)
+			if len(attachments) > 0:
+				for x in attachments:
+					ATTACHMENT = current_app.config['UPLOAD_DIR'] + '/'+ x['name']
+					fs.get(x['path'], ATTACHMENT)	
+					# Define the attachment part and encode it using MIMEApplication.
+					att = MIMEApplication(open(ATTACHMENT, 'rb').read())
+					# Add a header to tell the email client to treat this part as an attachment,
+					# and to give the attachment a name.
+					att.add_header('Content-Disposition','attachment',filename=os.path.basename(ATTACHMENT))
+					# Attach the multipart/alternative child container to the multipart/mixed
+					# parent container.
+					msg.attach(msg_body)
+					# Add the attachment to the parent container.
+					msg.attach(att)
+					# APPEND TMP FILE TO ARRAY FOR DELETION
+					tmpFiles.append(ATTACHMENT)
+			else:
+				msg.attach(msg_body)
+
+			response = client.send_raw_email(
+				Source=SENDER,
+				Destinations=[address],
+				RawMessage={'Data':msg.as_string(),}
+				# ConfigurationSetName=CONFIGURATION_SET
+			)
+			for x in tmpFiles:
+				os.remove(x)
+
+			return response
+		# 
+		except ClientError as e:
+			print(e.response['Error']['Message'])
+			return False
+
+
+	def inviteCandidate(self, attachments, address, header, body, subject):
+		try:
+			tmpFiles = []
+			# Create a multipart/mixed parent container.
+			msg = MIMEMultipart('mixed')
+			msg['Subject'] = subject 
+			msg['From'] = SENDER
+			msg['To'] = address
+			# Create a multipart/alternative child container.
+			msg_body = MIMEMultipart('alternative')
+			content  = header+body
+			plainTxt = re.sub('<[^<]+?>', '', content)
+			textpart = MIMEText(plainTxt.encode(CHARSET), 'plain', CHARSET)
+			htmlpart = MIMEText(content.encode(CHARSET), 'html', CHARSET)
+			# Add the text and HTML parts to the child container.
+			msg_body.attach(textpart)
+			msg_body.attach(htmlpart)
+			if len(attachments) > 0:
+				for x in attachments:
+					ATTACHMENT = current_app.config['UPLOAD_DIR'] + '/'+ x['name']
+					fs.get(x['path'], ATTACHMENT)	
+					# Define the attachment part and encode it using MIMEApplication.
+					att = MIMEApplication(open(ATTACHMENT, 'rb').read())
+					# Add a header to tell the email client to treat this part as an attachment,
+					# and to give the attachment a name.
+					att.add_header('Content-Disposition','attachment',filename=os.path.basename(ATTACHMENT))
+					# Attach the multipart/alternative child container to the multipart/mixed
+					# parent container.
+					msg.attach(msg_body)
+					# Add the attachment to the parent container.
+					msg.attach(att)
+					# APPEND TMP FILE TO ARRAY FOR DELETION
+					tmpFiles.append(ATTACHMENT)
+			else:
+				msg.attach(msg_body)
+				print(msg_body)
+
+			response = client.send_raw_email(
+				Source=SENDER,
+				Destinations=[address],
+				RawMessage={'Data':msg.as_string(),}
+				# ConfigurationSetName=CONFIGURATION_SET
+			)
+			for x in tmpFiles:
+				os.remove(x)
+
+			return response
+		# 
+		except ClientError as e:
+			print(e.response['Error']['Message'])
+			return False
+
+	def confirmCandidate(self, day, events, address, org, interviewLength):
+		try:
+			print("•••••••••••••••••••••••••••••••••••••••")
+			print("•••••••••••••••••••••••••••••••••••••••")
+			print(address)
+			print("•••••••••••••••••••••••••••••••••••••••")
+			print("•••••••••••••••••••••••••••••••••••••••")
+			tmpFiles = []
+			# Create a multipart/mixed parent container.
+			msg = MIMEMultipart('mixed')
+			msg['Subject'] = "Interview Times Confirmed • Candidate Rank" 
+			msg['From'] = "info@candidaterank.io"
+			msg['To'] = address
+			# Create a multipart/alternative child container.
+			msg_body = MIMEMultipart('alternative')
+			content   = "<h1>Candidate Rank</h1>"
+			content  += "<h2>Your interview dates with " +org['name']+ " have been set.</h2>"
+			content  += "<h4>Please review your interview times for " + day + " and save them to your calendar.</h4>"
+			if len(events) > 0:
+				for x in events:
+					evaluString = ''
+					for i in x['evaluators']:
+						evaluString += ' ' + i['first_name'] + ' ' + i['last_name']
+
+					file_id = uuid.uuid4()
+					file_id = str(file_id)
+					filePath = current_app.config['UPLOAD_DIR'] + '/'+ file_id+'.ics'
+					with open(filePath, 'w') as my_file:
+					    # my_file.writelines(calendar)
+					    my_file.write("BEGIN:VCALENDAR\n")
+					    my_file.write("VERSION:2.0\n")
+					    my_file.write("PRODID:ics.py - http://git.io/lLljaA\n")
+					    my_file.write("BEGIN:VEVENT\n")
+					    my_file.write("X-WR-TIMEZONE:America/Chicago\n")
+					    my_file.write("DTSTART;TZID=America/Chicago:"+x['date'].replace("-", "")+'T'+x['time'].replace(":", "")+ "00\n")
+					    my_file.write("DURATION:PT"+str(interviewLength)+"M\n")
+					    my_file.write("SUMMARY:Candidate Rank Interview\n")
+					    my_file.write("DESCRIPTION:"+x['zoom_link']+"\n")
+					    my_file.write("END:VEVENT\n")
+					    my_file.write("END:VCALENDAR\n")
+					    my_file.close()
+
+					att = MIMEApplication(open(filePath, 'rb').read())
+					# Add a header to tell the email client to treat this part as an attachment,
+					# and to give the attachment a name.
+					att.add_header('Content-Disposition','attachment',filename=os.path.basename(filePath))
+					# Add the attachment to the parent container.
+					msg.attach(att)
+					content += '<p>'
+					content +=  evaluString + ' ' + x['date']+' '+x['time'] +' CST'
+					content += ' <a href="'+ x['zoom_link'] +'">Zoom Meeting</a></p>'
+					os.remove(filePath)
+			else:
+				print(msg_body)
+				return False
+			content  += "<p>If you have a conflict in your schedule or need help, please contact " +org['admin']+"</p>"
+			msg.attach(msg_body)
+			plainTxt = re.sub('<[^<]+?>', '', content)
+			textpart = MIMEText(plainTxt.encode(CHARSET), 'plain', CHARSET)
+			htmlpart = MIMEText(content.encode(CHARSET), 'html', CHARSET)
+			# Add the text and HTML parts to the child container.
+			msg_body.attach(textpart)
+			msg_body.attach(htmlpart)
+
+			response = client.send_raw_email(
+				Source=msg['From'],
+				Destinations=[address],
+				RawMessage={'Data':msg.as_string(),}
+			)
+			for x in tmpFiles:
+				os.remove(x)
+				
+			print(response)
+			return response
+		# 
+		except ClientError as e:
+			print(e.response['Error']['Message'])
+			return False
+
+	def passwordReset(self, address, link):
+		with app.app_context():
+			mail = Mail(app)
+		print("SEND PASSWORD RESET EMAIL")
+		print(address)
+		print(link)
+		try:
+			body =  """<html>
+					<head></head>
+					<body>
+					  <h5>Candidate Rank Password Reset</h5>
+					  <p>You have requested a password reset for your candidatew rank account. Click the link below to reset your password.</p>
+					"""
+			body += link
+			body += """
+					</body>
+					</html>            
+					"""
+			plainTxt = re.sub('<[^<]+?>', '', body)
+			# response = client.send_email(
+	  #   		Destination={
+	  #       		'ToAddresses': [address],
+	  #   		},
+	  #   		Message={
+	  #       	'Body': {
+	  #           	'Html': {
+	  #               	'Charset': 'UTF-8',
+	  #               	'Data': body,
+	  #           	},
+	  #           	'Text': {
+	  #               	'Charset': 'UTF-8',
+	  #               	'Data': plainTxt,
+	  #           	},
+	  #       	},
+	  #       	'Subject': {
+	  #           	'Charset': 'UTF-8',
+	  #           	'Data': "Candidate Rank Password Reset",
+	  #       	},
+	  #   	},
+	  #   	Source='info@candidaterank.io',
+			# )
+			response = Message(
+				recipients=[address],
+				sender=('Candidate Rank', 'drew@thearchengine.com'),
+				reply_to='support@candidate-rank.com',
+				subject='Candidate Rank Password Reset',
+			)
+			response.html = body
+			mail.send(response)
+			print(response)
+			return response
+
+		except ClientError as e:
+			print(e.response['Error']['Message'])
+			return False
+
+	def evaluatorInvite(self, address, link):
+		print("SEND PASSWORD RESET EMAIL")
+		print(address)
+		print(link)
+		try:
+			body =  """<html>
+					<head></head>
+					<body>
+					  <h5>Welcome to Candidate Rank</h5>
+					  <p>Your department administrator has invited you to join. Click the link below to reset your password.</p>
+					"""
+			body += link
+			body += """
+					</body>
+					</html>            
+					"""
+			plainTxt = re.sub('<[^<]+?>', '', body)
+			response = client.send_email(
+	    		Destination={
+	        		'ToAddresses': [address],
+	    		},
+	    		Message={
+	        	'Body': {
+	            	'Html': {
+	                	'Charset': 'UTF-8',
+	                	'Data': body,
+	            	},
+	            	'Text': {
+	                	'Charset': 'UTF-8',
+	                	'Data': plainTxt,
+	            	},
+	        	},
+	        	'Subject': {
+	            	'Charset': 'UTF-8',
+	            	'Data': "Welcome to Candidate Rank",
+	        	},
+	    	},
+	    	Source='info@candidaterank.io',
+			)
+			return response
+
+		except ClientError as e:
+			print(e.response['Error']['Message'])
+			return False

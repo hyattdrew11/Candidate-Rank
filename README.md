@@ -62,4 +62,6 @@ https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xvi-full-text-
 
 
 
-ssh -L 9200:172.31.0.10:9200 candidate-worker -N 
+ssh -L 9200:172.31.0.10:9200 candidate-prod -N 
+ssh -L 6379:localhost:6379 cworker -N
+

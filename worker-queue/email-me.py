@@ -13,10 +13,10 @@ SENDERNAME = 'Sender Name'
 RECIPIENT  = 'drew@cicayda.com'
 
 # Replace smtp_username with your Amazon SES SMTP user name.
-USERNAME_SMTP = "***"
+USERNAME_SMTP = ""
 
 # Replace smtp_password with your Amazon SES SMTP password.
-PASSWORD_SMTP = "***"
+PASSWORD_SMTP = ""
 
 # (Optional) the name of a configuration set to use for this message.
 # If you comment out this line, you also need to remove or comment out

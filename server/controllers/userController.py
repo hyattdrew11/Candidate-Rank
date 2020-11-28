@@ -74,48 +74,66 @@ class UserController:
             print(error)
             return error
 
-    def createNewUser(self, email, password, organization):
+    def createNewUser(self, data):
         try:
-            print("CREATE NEW USER")
-            print(organization)
-            now = str(datetime.now())
-            item =  self.table_users.put_item(
-                        Item={
-                            "date_created"  : now,
-                            "date_modified" : now,
-                            "email"         : email,
-                            "password"      : password,
-                            "role"          : "faculty",
-                            "status"        : "Active",
-                            "Organization"  : organization['name'],
-                            "first_name"    : "  ",
-                            "last_name"     : "  ",
-                        })
-            return item
+            print(data)
+            check = self.getUser(data['email'], ' ')
+            if check:
+                return False
+            else:
+                print("CREATE NEW USER")
+                now = str(datetime.now())
+                item =  self.table_users.put_item(
+                            Item={
+                                "date_created"  : now,
+                                "date_modified" : now,
+                                "email"         : data['email'],
+                                "password"      : data['password'],
+                                "role"          : data['role'],
+                                "status"        : "Active",
+                                "Organization"  : data['organization'],
+                                "first_name"    : data['firstname'],
+                                "last_name"     : data['lastname'],
+                                "reset_link"    : data['reset_link'],
+                            })
+                return item
                 
         except Exception as error:
             print(error)
             return False
 
+    def getAll(self):
+        users = []
+        try:
+            response = self.table_users.scan()
+        except Exception as e:
+            print(e)
+        else:
+            data = response['Items']
+            while 'LastEvaluatedKey' in response:
+                response =  self.table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+                data.extend(response['Items'])
+
+            for i in data:
+                users.append(i)
+                
+        return users
+
     def updateUser(self, user):
         try:
-            print("REFRESH USER")
             now = str(datetime.now())
             user["date_modified"] = now
             item  = self.table_users.put_item(Item=user)
             if item:
-                print("USER REFRESHED")
                 return item
             else: 
                 return False
         except Exception as e:
-            print("ERROR UPDATING USER")
-            print(e)
             return False
 
 
     def getUser(self, email, password):
-        print("GET USER CONTROLLER: " + email)
+        print("GET USER CONTROLLER:")
         user = {}
         fe = Key('email').eq(email)
         try:

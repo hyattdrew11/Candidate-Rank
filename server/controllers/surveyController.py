@@ -31,7 +31,6 @@ class SurveyController:
         self.table = dynamodb.Table(SURVEYS_TABLE)
 
     def createSurvey(self, survey):
-        print(survey)
         now = str(datetime.now())
         sid = uuid.uuid4()
         sid = str(sid)
@@ -40,7 +39,6 @@ class SurveyController:
             "date_created"  : now,
             "date_modified" : now,
             "Organization"  : survey['Organization'],
-            "term"          : survey['term'],
             "type"          : survey['type'],
             "name"          : survey['name'],
             "questions"     : survey['questions']
@@ -53,25 +51,24 @@ class SurveyController:
             s = {}
             return False
 
+    def deleteSurvey(self, survey):
+        try:
+            print(survey['uuid'])
+            item = self.table.delete_item(Key={'uuid': survey['uuid'], 'Organization': survey['Organization'] })
+            return item
+        except Exception as e:
+            print(e)
+            return False
+
     def updateSurvey(self, survey):
-        now = str(datetime.now())
-        s = {
-            "date_modified" : now,
-            "Organization"  : survey['Organization'],
-            "term"          : survey['term'],
-            "type"          : survey['type'],
-            "name"          : survey['name'],
-            "questions"     : survey['questions']
-        }
-        item =  client.update_item(
-                    TableName=SURVEYS_TABLE,
-                    Key={'uuid': survey.uuid },
-                    AttributeUpdates=s,
-                )
-        if item:
-            return s
-        else: 
-            s = {}
+        try:
+            now = str(datetime.now())
+            survey["date_modified"]  = now
+            self.table.put_item(Item=survey)
+            return survey
+
+        except Exception as e:
+            print(e)
             return False
 
     def getSurveys(self, organization):

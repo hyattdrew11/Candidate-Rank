@@ -16,20 +16,26 @@ ORGANIZATIONS_TABLE				= 'organizations'
 USERS_TABLE 					= 'users'
 CANDIDATES_TABLE 				= 'candidates'
 SURVEYS_TABLE 					= 'surveys'
-ES_CLUSTER 						= 'localhost'
-ES_PORT 						= '9200'
+ES_CLUSTER 						= 'search-crprodcluster-gzhpfjadnrk7352eg5asofwcfm.us-east-1.es.amazonaws.com'
+ES_PORT 						= '443'
 S3_BUCKET 						= 'candidaterank' 
 UPLOAD_DIR						=  os.path.join(here, "uploads")
 
-MAIL_SERVER = 'smtp.gmail.com'
-MAIL_PORT = 465
-MAIL_USE_SSL = True
-MAIL_USERNAME = 'hyattdrew11@gmail.com'
-MAIL_PASSWORD = 'Baggins1121Gandalf12@!'
+# MAIL_SERVER = 'smtp.gmail.com'
+# MAIL_PORT = 465
+# MAIL_USE_SSL = True
+# MAIL_USERNAME = 'drew@thearchengine.com'
+# MAIL_PASSWORD = 'trbadtilseoeqluc'
 
+MAIL_SERVER = 'smtp.office365.com'
+MAIL_PORT = 587
+MAIL_USE_SSL = False
+MAIL_USE_TLS = True
+MAIL_USERNAME = 'info@candidate-rank.com'
+MAIL_PASSWORD = 'Avamaria24!'
 
 REDIS_URL = 'redis://34.236.216.176:6379'
 # REDIS_URL = 'redis://localhost:6379'
 
-ZOOM_API_KEY = 'Ky2xoXeKT9urd7tGXANQ8w'
-ZOOM_API_SECRET = 'xsNL8E4Va6EQxcsFnrfQY6sKFKJfNXmJKUwt'
+ZOOM_API_KEY = ''
+ZOOM_API_SECRET = ''

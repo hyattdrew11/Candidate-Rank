@@ -32,8 +32,8 @@ TASKS_TABLE   = 'tasks'
 bucket = 'candidaterank'
 
 
-ES_CLUSTER                      = '3.235.84.235'
-ES_PORT                         = '9200'
+ES_CLUSTER                      = 'search-crprodcluster-gzhpfjadnrk7352eg5asofwcfm.us-east-1.es.amazonaws.com'
+ES_PORT                         = '443'
 
 def test(job_id, s3key, organization):
     table = dynamodb.Table(TASKS_TABLE)
@@ -103,7 +103,20 @@ def importCSV(job_id, s3key, organization, year):
     c = CSVController()
     c.validate(file, organization, year)
 
+
+def importXML(job_id, s3key, organization, year):
+     # CRETAE A UNIQUE DIRECTORY KEY
+    dirID = str(uuid.uuid4())
+    # CREATE TMP PATH WHERE WORKER IS BEING RUN FROM TO SAVE ON LOCAL MACHINE
+    tmpPath = 'storage/' + dirID
+    os.makedirs(tmpPath)
+    fs.get(s3key, tmpPath + '/'+dirID+'.xml')
+    file =  tmpPath + '/'+dirID+'.xml'
+    c = CSVController()
+    c.processXML(file, organization, year)
+
 def getCandidate(s3key, organization, year):
+    print("GET CANDIDATE")
     response = {
         "success" : False,
         "candidate": {
@@ -111,11 +124,14 @@ def getCandidate(s3key, organization, year):
         },
     }
     print(s3key, organization, year)
-    ids = s3key.split('_')
+    afterSlash = s3key.rsplit('/',1)
+    print(afterSlash)
+    ids = afterSlash[1].split('_')
     print(ids)
     candidate = False
-    es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT }])
+    es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT, 'use_ssl': True  }])
     for x in ids:
+        print("CHECK ID: " + x)
         if x.isdigit() and len(x) == 8:
             response['candidate']['aamcid'] = x
             candidate = es.search(
@@ -148,7 +164,7 @@ def updateCandidate(candidate, photoDest, pdfDest):
     print("UpDATE CANDIDATE")
     print(candidate)
     table = dynamodb.Table('candidates')
-    es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT }])
+    es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT, 'use_ssl': True }])
     try:
         now = str(datetime.now())
         candidate["date_modified"]  = now
@@ -164,7 +180,7 @@ def updateCandidate(candidate, photoDest, pdfDest):
 def createCandidate(aamcid, photoDest, pdfDest, organization, year):
         print("CREATE NEW CANDIDATE")
         table = dynamodb.Table('candidates')
-        es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT }])
+        es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT, 'use_ssl': True  }])
         candidate = {}
         try:
             cid = uuid.uuid4()
@@ -206,16 +222,21 @@ def getPhoto(job_id, s3key, organization, year):
                 img.compression_quality = 99
                 print("IMAGE SAVE")
                 img.save(filename=jname)
+                print("IMAGE SAVE COMPLETE")
 
         filelist = os.listdir(tmpPath + '/')
         for x in filelist[:]:
+            # print("X in filelist")
             if not(x.endswith(".jpg")):
                 filelist.remove(x)
 
         for fl in filelist:
+            # print("fl in filelist")
             path = tmpPath + '/' +fl
             with open(path, 'rb') as image:
+                print("OPEN IMAGE")
                 response = recog.detect_faces(Image={'Bytes': image.read()})
+                print(response)
                 if len(response['FaceDetails']) > 0:
                     with Image(filename=path) as i:
                         print("==============================================================================")
@@ -232,21 +253,26 @@ def getPhoto(job_id, s3key, organization, year):
                         print(top, bottom, right, left)
                         print("==============================================================================")
 
-                        left   -= round(left * .25)
-                        top    -= round(top * .25)
-                        right  += round(right * .25)
-                        bottom += round(bottom * .25)
+                        left   -= round(left * .05)
+                        top    -= round(top * .05)
+                        right  += round(right * .05)
+                        bottom += round(bottom * .05)
                         print("==============================================================================")
                         print(top, bottom, right, left)
                         print("==============================================================================")
                         i.crop(left , top, right, bottom)
                         i.format = 'png'
+                        print("SAVE IMAGE")
                         i.save(filename=path)
 
+                    print("DEFINE FILE DEST")
                     dest =  tmpPath + '/profile-photo.jpg'
+                    print("DEFINE FILE S3 DEST")
                     s3Dest = bucket +'/'+ organization +'/'+ year +'/'+ dirID + '.jpg'
                     shutil.copyfile(path, dest)
                     fs.put(dest, s3Dest)
+                    print("FILE PUT IN S3")
+                    print(check)
                     if check['success'] == True:
                         print(check)
                         # def updateCandidate(uuid, photoDest, pdfDest):
@@ -255,15 +281,25 @@ def getPhoto(job_id, s3key, organization, year):
                         shutil.rmtree(tmpPath)
                         return
                     else:
+                        print("CANDIDATE NOT FOUND")
                         print(check)
-                        aamcid = check['candidate']['aamcid']
-                        # createCandidate(aamcid, photoDest, pdfDest, organization, year):
-                        print("Create New Candidate with photo path")
-                        createCandidate(aamcid, s3Dest, s3key, organization, year)
                         shutil.rmtree(tmpPath)
+                        # aamcid = check['candidate']['aamcid']
+                        # print("Create New Candidate with photo path")
+                        # createCandidate(aamcid, s3Dest, s3key, organization, year)
+                        # shutil.rmtree(tmpPath)
                         return
+                else:
+                    print("NO FACE DETECTED")
+                    # s3Dest = bucket +'/'+ organization +'/'+ year +'/'+ dirID + '.jpg'
+                    # updateCandidate(check['candidate'], s3Dest, s3key)
+                    # print("Update Candidate in Dynamo and ES witn new photo path")
+                    # shutil.rmtree(tmpPath)
+                    # return
+                    # https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png
 
     except Exception as e: 
+        print("EXCEPTION")
         print(e)
         shutil.rmtree(tmpPath)
         return

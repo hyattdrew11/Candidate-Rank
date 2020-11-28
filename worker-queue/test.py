@@ -1,7 +1,11 @@
 #! UNIT TEST SCRIPT CLI TOOLS
 import sys
 import time
-
+from xml.etree.ElementTree import fromstring
+from xmljson import badgerfish as bf
+import xmltodict, json
+from json import loads, dumps
+from collections import OrderedDict
 
 arguments = [
 	'email',
@@ -50,4 +54,44 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total: 
         print()
 
-testEmail()
+def to_dict(input_ordered_dict):
+    return loads(dumps(input_ordered_dict))
+
+def importXML(file):
+    candidates = []
+    header = ['ApplicantId', 'LastName', 'FirstName', 'Email', 'AddToInterviewList', 'MedSchool', 'YearOfGraduation', 'AAMC ID', 'CurrentResidency', 'YearOfResCompletion', 'StepOneDateTaken', 'StepOneThreeDigitScore', 'StepTwoDateTaken', 'StepTwoThreeDigitScore', 'StepThreeDateTaken', 'StepThreeThreeDigitScore', 'NBOME ID', 'ComlexStep1DateTaken', 'Comlex1 Score', 'ComlexStep2DateTaken', 'Comlex2 Score', 'ComlexStep3DateTaken', 'Comlex3 Score', 'AoaStatus', 'GoldHumanismStatus', 'Category', 'First Delivery', 'Last Updated', 'Last Reviewed', 'Address1', 'Address2', 'City', 'State', 'Zip', 'Country', 'PhoneHome', 'PhoneCell']
+    count = 0
+    string = open(file, 'r').read()
+    pp = xmltodict.parse(string)
+    if pp['Workbook']['Worksheet'][0]['Table']['Row']:
+        for inx, x in enumerate(pp['Workbook']['Worksheet'][0]['Table']['Row']):
+            if inx == 0:
+                print("SKIP HEADER")
+            else:
+                rowJson = loads(dumps(x))
+                candidate = {}
+                index = 0 
+                if "Cell" in rowJson:
+                    data = rowJson['Cell']
+                    for obj in data:
+                        if "Data" in obj:
+                            if "#text" in obj['Data']:
+                                candidate[header[index]] = obj["Data"]["#text"]
+                                index += 1
+                            else:
+                                candidate[header[index]] = "n/a"
+                                index += 1
+
+                        else:
+                            print("NO DATA")
+
+                    candidates.append(candidate)
+
+                else:
+                    print("CELL NOT FOUND")
+    else:
+        return False
+        
+    return
+
+xmlToJson("/Users/drewhyatt/Downloads/test.xml")

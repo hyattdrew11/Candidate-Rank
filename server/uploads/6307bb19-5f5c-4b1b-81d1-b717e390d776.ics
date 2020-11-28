@@ -1,0 +1,6 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:ics.py - http://git.io/lLljaA
+BEGIN:VEVENT
+X-WR-TIMEZONE:America/Chicago
+DTSTART;TZID=America/Chicago:20200926T080500Z

@@ -207,7 +207,7 @@ def passwordReset():
         return "Record not found", 500
     else:
         recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify'
-        recaptcha_secret_key = '6Ld4AdoZAAAAAHfWq4u0kdxf8wWtYJT-yI_EfE4h'
+        recaptcha_secret_key = ''
         payload = {
            'secret': recaptcha_secret_key,
            'response': data['recaptchaToken'],

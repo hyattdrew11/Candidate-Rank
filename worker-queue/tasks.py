@@ -132,7 +132,7 @@ def getCandidate(s3key, organization, year):
     es = Elasticsearch([{ 'host': ES_CLUSTER, 'port': ES_PORT, 'use_ssl': True  }])
     for x in ids:
         print("CHECK ID: " + x)
-        if x.isdigit() and len(x) == 8:
+        if x.isdigit() and len(x) > 4:
             response['candidate']['aamcid'] = x
             candidate = es.search(
                 index="candidates", 
@@ -212,6 +212,7 @@ def getPhoto(job_id, s3key, organization, year):
     # CREATE TMP PATH WHERE WORKER IS BEING RUN FROM TO SAVE ON LOCAL MACHINE
     tmpPath = 'storage/' + dirID
     os.makedirs(tmpPath)
+    lengthCheck = 0
     try:
         # GET FILE INFO FROM S3
         finfo = fs.info(s3key)
@@ -236,7 +237,7 @@ def getPhoto(job_id, s3key, organization, year):
             with open(path, 'rb') as image:
                 print("OPEN IMAGE")
                 response = recog.detect_faces(Image={'Bytes': image.read()})
-                print(response)
+                lengthCheck += 1
                 if len(response['FaceDetails']) > 0:
                     with Image(filename=path) as i:
                         print("==============================================================================")
@@ -291,12 +292,13 @@ def getPhoto(job_id, s3key, organization, year):
                         return
                 else:
                     print("NO FACE DETECTED")
-                    # s3Dest = bucket +'/'+ organization +'/'+ year +'/'+ dirID + '.jpg'
-                    # updateCandidate(check['candidate'], s3Dest, s3key)
-                    # print("Update Candidate in Dynamo and ES witn new photo path")
-                    # shutil.rmtree(tmpPath)
-                    # return
-                    # https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png
+                    if lengthCheck == len(filelist) and check['success'] == True:
+                        print('ADD PLACEHOLDER')
+                        updateCandidate(check['candidate'],  bucket +'/placeholder-face-big.png', s3key)
+                        shutil.rmtree(tmpPath)
+                        return
+                    else:
+                        print("CONTINUE")
 
     except Exception as e: 
         print("EXCEPTION")

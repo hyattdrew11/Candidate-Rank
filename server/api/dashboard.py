@@ -14,6 +14,7 @@ import requests
 import secrets
 import json
 from time import time
+from time import sleep
 
 from server.controllers.organizationController 	import OrganizationController
 from server.controllers.userController   		import UserController
@@ -346,6 +347,7 @@ def finalizeSchedule(organization):
 							if 'candidate' in event:
 								print("MAKE A ZOOM MEETING")
 								EVT = event
+								print(EVT['time'])
 								Etime = DTE+"T"+EVT['time']+":00+06:00"
 								print(Etime)
 
@@ -378,7 +380,7 @@ def finalizeSchedule(organization):
 				print(org['terms'][cti]['dates'][dateIndex])
 				# NOTIFY CANDIDATES
 				for x in candidates:
-					print(x)
+					sleep(1)
 					confirmCandidate = EmailController.confirmCandidate(data['date'], x['email'], org)
 
 				return jsonify(org), 201

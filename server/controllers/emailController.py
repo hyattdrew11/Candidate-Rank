@@ -318,6 +318,7 @@ class EmailController:
 			print("•••••••••••••••••••••••••••••••••••••••")
 			# Create a multipart/mixed parent container.
 			content   = "<h5>Your interview date with " +org['name'].upper()+ " has been set.</h5>"
+			content  += "<h6>All finalized interview times conform to Central Standard Time.</h6>"
 			content  += "<a href='https://candidaterank.io/applicant'>View My Schedule</a>"			
 			content  += "<p>If your administrator has set up a virtual waiting room this will become available 24-48 hours prior to your interview date and can be viewed in your schedule. If you have a conflict in your schedule or need help, please contact " +org['admin']+"</p>"
 			content  += "<ul><li>Make sure you only have one virtual meeting open at a time</li><li>Refresh your CandidateRank Schedule prior to interviews</li><li>Make sure you have a stable internet connection</li><li>Check all your “Start Zoom” buttons to make sure they have a pointer finger over them</li></ul>"
@@ -401,7 +402,7 @@ class EmailController:
 		try:
 			body =  """
 					  <h2>Welcome to Candidate Rank</h2>
-					  <p>Your department administrator has invited you to join this interview season. Use the password provided below to login at https://candidaterank.io/login</p>
+					  <p>Your department administrator has invited you to join this interview season. Use the password provided below to login at <a href="https://candidaterank.io/login">https://candidaterank.io/login</a></p>
 					"""
 			body += "<h3><strong>"
 			body += password

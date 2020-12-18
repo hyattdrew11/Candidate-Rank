@@ -21,11 +21,7 @@ ES_PORT 						= '443'
 S3_BUCKET 						= 'candidaterank' 
 UPLOAD_DIR						=  os.path.join(here, "uploads")
 
-# MAIL_SERVER = 'smtp.gmail.com'
-# MAIL_PORT = 465
-# MAIL_USE_SSL = True
-# MAIL_USERNAME = 'drew@thearchengine.com'
-# MAIL_PASSWORD = 'trbadtilseoeqluc'
+
 
 MAIL_SERVER = 'smtp.office365.com'
 MAIL_PORT = 587
@@ -39,3 +35,4 @@ REDIS_URL = 'redis://34.236.216.176:6379'
 
 ZOOM_API_KEY = ''
 ZOOM_API_SECRET = ''
+

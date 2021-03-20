@@ -31,7 +31,7 @@ fsspec==0.7.3
 idna==2.8
 invoke==1.2.0
 itsdangerous==1.1.0
-Jinja2==2.11.1
+Jinja2==2.11.3
 jmespath==0.9.4
 jsmin==2.2.2
 Mako==1.1.1

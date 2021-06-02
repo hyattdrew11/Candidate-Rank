@@ -17,5 +17,5 @@ rq==1.4.3
 s3fs==0.4.2
 s3transfer==0.3.3
 six==1.15.0
-urllib3==1.25.9
+urllib3==1.26.5
 Wand==0.6.1

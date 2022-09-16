@@ -29,7 +29,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.1
 jmespath==0.9.4
 jsmin==2.2.2
-Mako==1.1.1
+Mako==1.2.2
 MarkupSafe==1.1.1
 paramiko==2.4.2
 protobuf==3.6.1

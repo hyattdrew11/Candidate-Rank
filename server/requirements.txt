@@ -43,7 +43,7 @@ paramiko==2.4.2
 pdf2image==1.13.1
 pdfkit==0.6.1
 Pillow==7.1.2
-protobuf==3.6.1
+protobuf==3.18.3
 pyasn1==0.4.4
 pycparser==2.19
 PyJWT==1.7.1
